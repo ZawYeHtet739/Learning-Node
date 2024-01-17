@@ -105,9 +105,8 @@ app.post(
     }
 );
 
-// find and update (replace) data
-
-app.put = ("/api/records/:id", async function (req, res) {
+// find one and replace data
+app.put("/api/records/:id", async function (req, res) {
     try {
         const _id = new ObjectId(req.params.id);
 
@@ -129,6 +128,38 @@ app.put = ("/api/records/:id", async function (req, res) {
     }
 });
 
+// find one and update data
+app.patch("/api/records/:id", async function (req, res) {
+    try {
+        const _id = new ObjectId(req.params.id);
+
+        const result = await db
+            .collection("records")
+            .findOneAndUpdate(
+                { _id },
+                { $set: req.body },
+                { returnDocument: "after" }
+            );
+
+        res.json({
+            meta: { _id },
+            data: result.value,
+        });
+    } catch {
+        res.sendStatus(500);
+    }
+});
+
+// delete one
+app.delete("/api/records/:id", async function (req, res) {
+    try {
+        const _id = new ObjectId(req.params.id);
+        await db.collection("records").deleteOne({ _id });
+        res.sendStatus(204);
+    } catch {
+        res.sendStatus(500);
+    }
+});
 
 // test api url
 // http://localhost:8000/api/test?filter[to]=Yangon&sort[name]=1&page=1
