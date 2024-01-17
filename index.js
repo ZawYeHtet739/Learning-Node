@@ -11,6 +11,13 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+// validator setup
+const {
+    body,
+    param,
+    validationResult
+} = require("express-validator");
+
 // get records data
 app.get("/api/records", async function (req, res) {
 
@@ -60,11 +67,76 @@ app.get("/api/records", async function (req, res) {
 
 })
 
+// create record data
+app.post(
+    "/api/records",
+
+    // https://github.com/validatorjs/validator.js#validators
+    [
+        body("name").not().isEmpty(),
+        body("from").not().isEmpty(),
+        body("to").not().isEmpty(),
+    ],
+    async function (req, res) {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                errors: errors.array()
+            });
+        }
+
+        try {
+            const result = await db
+                .collection("records")
+                .insertOne(req.body);
+
+            const _id = result.insertedId;
+
+            res.append("Location", "/api/records" + _id);
+
+            res.status(201).json({
+                meta: { _id },
+                data: result,
+            });
+        } catch {
+            res.sendStatus(500);
+        }
+    }
+);
+
+// find and update (replace) data
+
+app.put = ("/api/records/:id", async function (req, res) {
+    try {
+        const _id = new ObjectId(req.params.id);
+
+        const result = await db
+            .collection("records")
+            .findOneAndReplace(
+                { _id },
+                req.body,
+                { returnDocument: "after" }
+            );
+
+        res.json({
+            meta: { _id },
+            data: result.value,
+        });
+
+    } catch {
+        res.sendStatus(500);
+    }
+});
+
+
 // test api url
-app.get("/test", function (req, res) {
+// http://localhost:8000/api/test?filter[to]=Yangon&sort[name]=1&page=1
+app.get("/api/test", function (req, res) {
     return res.json(req.query);
 })
 
+//
 app.listen(8000, function () {
     console.log("Server running at port 8000...");
 });
