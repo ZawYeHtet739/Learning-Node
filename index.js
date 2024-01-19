@@ -18,6 +18,24 @@ const {
     validationResult
 } = require("express-validator");
 
+// cors
+
+// app.use(function (req, res, next) {
+//     res.append("Access-Control-Allow-Origin", "*");
+//     res.append("Access-Control-Allow-Methods", "*");
+//     res.append("Access-Control-Allow-Headers", "*");
+//     next();
+// });
+
+const cors = require("cors");
+app.use(cors());
+
+// app.use(cors({
+//     origin: ["http://localhost:5500", "http://b.com"],
+//     methods: ["GET", "POST"],
+//     allowHeaders: ["Authorization", "Content-Type"]
+// }));
+
 // get records data
 app.get("/api/records", async function (req, res) {
 
