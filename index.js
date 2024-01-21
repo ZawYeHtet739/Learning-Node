@@ -37,7 +37,8 @@ app.use(cors());
 // }));
 
 // get records data
-app.get("/api/records", async function (req, res) {
+app.get("/api/records", auth, async function (req, res) {
+    // app.get("/api/records", async function (req, res) {
 
     // get api url data with json
     // http://localhost:8000/api/records?filter[to]=Yangon&sort[name]=1&page=1
@@ -169,7 +170,7 @@ app.patch("/api/records/:id", async function (req, res) {
 });
 
 // delete one
-app.delete("/api/records/:id", async function (req, res) {
+app.delete("/api/records/:id", auth, onlyAdmin, async function (req, res) {
     try {
         const _id = new ObjectId(req.params.id);
         await db.collection("records").deleteOne({ _id });
@@ -178,6 +179,66 @@ app.delete("/api/records/:id", async function (req, res) {
         res.sendStatus(500);
     }
 });
+
+//  API Auth
+// JWT
+const jwt = require("jsonwebtoken");
+const secret = "horse battery staple";
+
+const users = [
+    { username: "Alice", password: "password", role: "admin" },
+    { username: "Bob", password: "password", role: "user" },
+];
+
+// login
+app.post("/api/login", function (req, res) {
+    const { username, password } = req.body;
+
+    const user = users.find(function (u) {
+        return u.username === username && u.password === password;
+    });
+
+    if (user) {
+        const token = jwt.sign(user, secret, { expiresIn: "1h" });
+        res.json({ token });
+    } else {
+        res.sendStatus(401);
+    }
+});
+
+// function for Authentication
+function auth(req, res, next) {
+
+    // check header (authorization) exist or not
+    const authHeader = req.headers["authorization"];
+    if (!authHeader) return res.sendStatus(401);
+
+    // get type and token
+    const [type, token] = authHeader.split(" ");
+
+    // check type
+    if (type != "Bearer") return res.sendStatus(401);
+
+    // check auth
+    jwt.verify(token, secret, function (err, data) {
+        if (err) return res.sendStatus(401);
+        else next();
+    });
+}
+
+// function for Authorization
+function onlyAdmin(req, res, next) {
+
+    // get type and token
+    const [type, token] = req.headers["authorization"].split(" ");
+
+    // check admin or user
+    jwt.verify(token, secret, function (err, user) {
+        if (user.role === "admin") next();
+        else res.sendStatus(401);
+    });
+}
+
 
 // test api url
 // http://localhost:8000/api/test?filter[to]=Yangon&sort[name]=1&page=1
