@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Data Fetch</title>
+    <script src="travel_api.js"></script>
+</head>
+
+<body>
+
+    <label for="token-input">Token:</label>
+    <input type="text" id="token-input" placeholder="Enter your token"><br><br>
+
+    <label for="api-url-input">API URL:</label>
+    <input type="text" id="api-url-input" placeholder="Enter the API URL"><br><br>
+
+    <button onclick="fetchTravelData()">Fetch Travel Data</button>
+
+    <div id="result-container"></div>
+
+</body>
+
+</html>
